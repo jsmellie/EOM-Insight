@@ -1,7 +1,14 @@
 
+class SupportedInstitutions:
+    TD_CREDIT = "TD-Credit"
+    TD_BANKING = "TD-Banking"
+    RBC_CREDIT = "RBC-Credit"
+    EQ_BANK = "EQ-Bank"
+    CTFS_CREDIT = "CTFS-Credit"
 
 def importCSV(filePath):
     from pathlib import Path
+    import tdcredit
     import os
     import csv
     
@@ -16,37 +23,36 @@ def importCSV(filePath):
         raise PermissionError(f"The file at {filePath} is not readable.")
     with p.open('r', encoding='utf-8') as file:
         
-        # parse CSV into a list of rows
+        # Determine the institution type
+        basename = p.stem
+        parts = basename.split('_')
+        instituteType = parts[0] if parts else ''
+        
+        # Set func references based on institution type        
+        addHeaderRowFunc = None
+        importFunc = None
+        
+        match instituteType:
+            case SupportedInstitutions.TD_CREDIT:
+                addHeaderRowFunc = tdcredit.preimportCSVManipulation
+                importFunc = tdcredit.importCSV
+            case _:
+                raise ValueError(f"The institution type '{instituteType}' is not supported.")
+            
+        # 
+        
+        # Parse CSV into a list of rows
         reader = csv.DictReader(file)
         rows = list(reader)
         print (f"Imported {len(rows)} rows from {filePath}")
+    
         
-        basename = p.stem
-        print (f"Basename: {basename}")
+        formatedData = []
         
-        parts = basename.split('_')
-        instituteType = parts[0] if parts else ''
-        print (f"Institute Type: {instituteType}")
         
-        match instituteType:
-            case 'TD-Credit':
-                #importTDCreditCSV(data)
-                pass
-            case 'TD-Banking':
-                #importTDBankingCSV(data)
-                pass
-            case 'RBC-Credit':
-                #importRBCCreditCSV(data)
-                pass
-            case 'EQ-Bank':
-                #importEQBankCSV(data)
-                pass
-            case 'CTFS-Credit':
-                #importCTFSCreditCSV(data)
-                pass
             
             
             
 if __name__ == '__main__':
-    testFilePath = 'C:/Users/Jeremy/Documents/Programing/BudgetAmalgamator/testfiles/TD-Credit_Transactions_Oct2025.csv'
+    testFilePath = 'C:/Users/Jeremy/Documents/Programming/EOM-Insight/testfiles/TD-Credit_Transactions_Oct2025.csv'
     importCSV(testFilePath)
