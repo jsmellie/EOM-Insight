@@ -1,5 +1,5 @@
 
-class SupportedInstitutions:
+class SupportedInstitutions: # Holder class for all the institutions that we will support
     TD_CREDIT = "TD-Credit"
     TD_BANKING = "TD-Banking"
     RBC_CREDIT = "RBC-Credit"
@@ -29,30 +29,31 @@ def importCSV(filePath):
         instituteType = parts[0] if parts else ''
         
         # Set func references based on institution type        
-        addHeaderRowFunc = None
+        preprocessCSVFunc = None
         importFunc = None
         
         match instituteType:
             case SupportedInstitutions.TD_CREDIT:
-                addHeaderRowFunc = tdcredit.preimportCSVManipulation
+                preprocessCSVFunc = tdcredit.preprocessCSV
                 importFunc = tdcredit.importCSV
             case _:
                 raise ValueError(f"The institution type '{instituteType}' is not supported.")
             
-        # 
+        
         
         # Parse CSV into a list of rows
-        reader = csv.DictReader(file)
+        file = preprocessCSVFunc(file)
+        reader = csv.reader(file)
         rows = list(reader)
         print (f"Imported {len(rows)} rows from {filePath}")
-    
-        
-        formatedData = []
+        formatedData = importFunc(rows)
         
         
             
             
             
 if __name__ == '__main__':
-    testFilePath = 'C:/Users/Jeremy/Documents/Programming/EOM-Insight/testfiles/TD-Credit_Transactions_Oct2025.csv'
+    import os
+    curDir = os.path.dirname(os.path.realpath(__file__))
+    testFilePath = curDir + '\..\\testfiles\TD-Credit_Transactions_Oct2025.csv'
     importCSV(testFilePath)
