@@ -21,10 +21,11 @@ def validateCSV(file):
             if commaCount != 6:
                 raise ValueError(f"Invalid number of columns for row {lineCount}. Expected 6, got {commaCount}")
             lineCount += 1
-            # In theory I could type check every single element but I really really don't want to...  We;ll see if I come to regret this
+                # In theory I could type check every single element but I really really don't want to...  We;ll see if I come to regret this
     except Exception as e:
         logger.exception(str(e))
-        raise
+        return False
+    
     file.seek(sp)
     return True
 

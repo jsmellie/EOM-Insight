@@ -64,7 +64,6 @@ def importCSV(filePath):
         
     except Exception as e:
         logger.exception(str(e))
-        raise
         
         # ---
         # TODO List
