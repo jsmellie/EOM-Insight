@@ -149,6 +149,7 @@ if __name__ == '__main__':
     else:
         # For testing purposes    
         curDir = os.path.dirname(os.path.realpath(__file__))
-        testFilePath = curDir + '\..\\testfiles\invalid\TD-Credit_Transactions_Oct2025.csv'
+        testFileName = 'TD-Credit_Transactions_Oct2025_InvalidRows.csv'
+        testFilePath = curDir + f'\..\\testfiles\invalid\{testFileName}'
         logger.info(f"Testing importCSV with file: {testFilePath}")
         importCSV(testFilePath)
