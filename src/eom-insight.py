@@ -82,7 +82,7 @@ def run_once(f):
     return wrapper
 
 @run_once
-def setupRootLogger():
+def setupRootLogger(logLevel=logging.INFO):
     import datetime
     import os
     
@@ -101,7 +101,7 @@ def setupRootLogger():
         
     # Create logger
     root = logging.getLogger()
-    root.setLevel(logging.INFO)
+    root.setLevel(logLevel)
     
     # Add a blank line in the log file to separate runs
     osFilePath = os.path.join(logFolder, fileNameFormat)
@@ -137,19 +137,26 @@ if __name__ == '__main__':
     
     # Setup argument parser
     parser = argparse.ArgumentParser(description='EOM Insight CSV Importer')
-    parser.add_argument('--file', type=str, help='Path to the CSV file to import', required=False)
+    parser.add_argument('file', type=str, help='Path to the CSV file to import', nargs='?')
+    parser.add_argument('-d', '--debug', action='store_true', help='Enable debug mode', required=False)
+    parser.add_argument('-l', '--logLevel', type=str, help='Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)', required=False, default='WARNING')
     args = parser.parse_args()
     
+    if (args.debug): #We ignore the log level if debug is set
+        args.logLevel = 'DEBUG'
+    
     # Setup the root logger
-    setupRootLogger()
+    setupRootLogger(args.logLevel)
+    
+    logger.info(f"File value: {args.file}")
     
     if args.file:
         logger.info(f"File provided: {args.file}")
         importCSV(args.file)
-    else:
+    elif args.debug:
         # For testing purposes    
         curDir = os.path.dirname(os.path.realpath(__file__))
-        testFileName = 'TD-Credit_Transactions_Oct2025_InvalidRows.csv'
-        testFilePath = curDir + f'\..\\testfiles\invalid\{testFileName}'
+        testFileName = os.path.join('valid','TD-Credit_Transactions_Oct2025.csv')
+        testFilePath = os.path.join(curDir, '..', 'testfiles', testFileName)
         logger.info(f"Testing importCSV with file: {testFilePath}")
         importCSV(testFilePath)
