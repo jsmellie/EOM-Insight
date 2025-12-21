@@ -19,8 +19,25 @@ def validate_csv(file):
             commaCount = line.count(',')
             if commaCount != 6:
                 raise ValueError(f"Invalid number of columns for row {lineCount}. Expected 6, got {commaCount}")
+            splitLine = line.strip().split(',')
+            
+            month = int(splitLine[0])
+            if month < 1 or month > 12:
+                raise ValueError(f"Invalid month value '{month}' for row {lineCount}")
+            day = int(splitLine[1])
+            if day < 1 or day > 31:
+                raise ValueError(f"Invalid day value '{day}' for row {lineCount}")
+            year = int(splitLine[2])
+            if year < 1900 or year > datetime.datetime.now().year:
+                raise ValueError(f"Invalid year value '{year}' for row {lineCount}")
+            desc = splitLine[3]
+            if desc is None or len(desc) == 0:
+                raise ValueError(f"Invalid description value for row {lineCount}")
+            debit = splitLine[4]
+            credit = splitLine[5]
+            if (debit is None or len(debit) == 0) and (credit is None or len(credit) == 0):
+                raise ValueError(f"Invalid debit and credit values for row {lineCount}")
             lineCount += 1
-                # In theory I could type check every single element but I really really don't want to...  We;ll see if I come to regret this
     except Exception as e:
         logger.exception(str(e))
         return False
