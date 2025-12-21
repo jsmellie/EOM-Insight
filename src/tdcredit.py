@@ -4,11 +4,10 @@ import datetime
 import logging
 logger = logging.getLogger(__name__)
 
-def validateCSV(file):
-    # TD Credit format is as follows
-    # [Month #] [Day #] [Year #] [Desc] [Debit $] [Credit $] [Balance $]
+def validate_csv(file):
+    ''' TD Credit format is as follows
+    # [Month #] [Day #] [Year #] [Desc] [Debit $] [Credit $] [Balance $] '''
     
-    # Though this is probably fool hearted, I'm going to presume that the file has been validated to actually exist...
     logger.info("Validating CSV data")
     sp = file.tell()
     try:
@@ -29,12 +28,12 @@ def validateCSV(file):
     file.seek(sp)
     return True
 
-def preprocessCSV(file):
+def preprocess_csv(file):
     logger.info("No pre-processing needed defined")
     # Add any necessary preprocessing logic here
     return file
 
-def importCSV(rows):
+def import_csv(rows):
     logger.info("Starting CSV import")
     # TD Credit format is as follows
     # [Month #] [Day #] [Year #] [Desc] [Debit $] [Credit $] [Balance $]

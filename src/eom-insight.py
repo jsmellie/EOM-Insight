@@ -1,8 +1,18 @@
 
+
+from pathlib import Path
+import os
+import csv
 import logging
+import datetime
+import argparse
+
+import tdcredit
+
 logger = logging.getLogger(__name__)
 
-class SupportedInstitutions: # Holder class for all the institutions that we will support
+""" Full list of all supported institutions.  Used heavily in formatting the CSV"""
+class SupportedInstitutions:
     TD_CREDIT = "TD-Credit"
     # TD_BANKING = "TD-Banking"
     # RBC_CREDIT = "RBC-Credit"
@@ -10,23 +20,18 @@ class SupportedInstitutions: # Holder class for all the institutions that we wil
     # EQ_BANK = "EQ-Bank"
     # CTFS_CREDIT = "CTFS-Credit"
 
-def importCSV(filePath):
-    from pathlib import Path
-    import tdcredit
-    import os
-    import csv
-    import logging
-    
+def import_csv(filePath):
+
     p = Path(filePath)
     
     try:
-        if not p.exists(): # Ensure the path exists
+        if not p.exists():
             raise FileNotFoundError(f"The file at {filePath} does not exist.")
-        if not p.is_file(): # Ensure that is is a file
+        if not p.is_file():
             raise IsADirectoryError(f"The path {filePath} is a directory.")
-        if not p.suffix.lower() == '.csv': # Ensure that it is a CSV
+        if not p.suffix.lower() == '.csv':
             raise ValueError(f"The file at {filePath} is not a CSV file.")
-        if not os.access(filePath, os.R_OK): # Ensure that the file is readable
+        if not os.access(filePath, os.R_OK):
             raise PermissionError(f"The file at {filePath} is not readable.")
     
         with p.open('r', encoding='utf-8') as file:
@@ -37,25 +42,22 @@ def importCSV(filePath):
             instituteType = parts[0] if parts else ''
             logger.info(f"Detected institution type: {instituteType}")
             
-            # Set func references based on institution type
             validateCSVFunc = None      
             preprocessCSVFunc = None
             importFunc = None
             
             match instituteType:
                 case SupportedInstitutions.TD_CREDIT:
-                    validateCSVFunc = tdcredit.validateCSV
-                    preprocessCSVFunc = tdcredit.preprocessCSV
-                    importFunc = tdcredit.importCSV
+                    validateCSVFunc = tdcredit.validate_csv
+                    preprocessCSVFunc = tdcredit.preprocess_csv
+                    importFunc = tdcredit.import_csv
                 case _:
                     raise ValueError(f"The institution type '{instituteType}' is not supported.")
                 
-            # Validate CSV
             isValid = validateCSVFunc(file)
             if not isValid:
                 raise ValueError(f"The CSV file at {filePath} is not valid for institution type '{instituteType}'.")
             
-            # Parse CSV into a list of rows
             file = preprocessCSVFunc(file)
             reader = csv.reader(file)
             rows = list(reader)
@@ -65,13 +67,13 @@ def importCSV(filePath):
     except Exception as e:
         logger.exception(str(e))
         
-        # ---
+        ''' ---
         # TODO List
-        # - Categarize transactions based on description regex
-        # - Compare valid tranactions against previous imports to prevent duplicates
+        # - Categorize transactions based on description regex
+        # - Compare valid transactions against previous imports to prevent duplicates
         # - Update Google sheet with information
         # - Add support for more institutions
-        # ---
+         --- '''
 
 def run_once(f):
     def wrapper(*args, **kwargs):
@@ -82,24 +84,20 @@ def run_once(f):
     return wrapper
 
 @run_once
-def setupRootLogger(logLevel=logging.INFO):
-    import datetime
-    import os
+def setup_root_logger(logLevel=logging.INFO):
     
     logFolderName = 'logs'
     
-    # Make sure that the log folder exists
     curDir = os.path.dirname(os.path.realpath(__file__))
     logFolder = os.path.join(curDir, '..', logFolderName)
     if not os.path.exists(logFolder):
         os.makedirs(logFolder)
         
-    # Determine log file name
+    # Log file name is based on date to make tracking easier
     formattedTime = datetime.datetime.now().strftime('%Y-%m-%d')
     fileNameFormat = f'general_{formattedTime}.log'
     localFilePath = os.path.join(logFolderName, fileNameFormat)
         
-    # Create logger
     root = logging.getLogger()
     root.setLevel(logLevel)
     
@@ -123,40 +121,54 @@ def setupRootLogger(logLevel=logging.INFO):
     fh.setFormatter(formatter)
     root.addHandler(ch)
     root.addHandler(fh)
-    pass   
-            
-def peekLine(f):
+    pass  
+
+'''Determines if the provided log type is valid by utilizing internal dictionaries of the logging module'''
+def is_valid_log_type(log_type):
+    if isinstance(log_type, str):
+        if (logging._nameToLevel.get(log_type.upper()) is None):
+            return False
+        return True
+    elif isinstance(log_type, int):
+        if (logging._levelToName.get(log_type) is None):
+            return False
+        return True
+    else:
+        return False 
+
+'''Peeks at the next line in a file without advancing the file pointer'''
+def peek_line(f):
     pos = f.tell()
     line = f.readline()
     f.seek(pos)
     return line        
-            
-if __name__ == '__main__':
-    import os
-    import argparse
-    
-    # Setup argument parser
+           
+'''Main entry point for EOM Insight''' 
+if __name__ == '__main__':    
     parser = argparse.ArgumentParser(description='EOM Insight CSV Importer')
     parser.add_argument('file', type=str, help='Path to the CSV file to import', nargs='?')
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debug mode', required=False)
     parser.add_argument('-l', '--logLevel', type=str, help='Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)', required=False, default='WARNING')
     args = parser.parse_args()
     
-    if (args.debug): #We ignore the log level if debug is set
+    # While debugging, ensure that the log level is properly set to DEBUG
+    if (args.debug):
         args.logLevel = 'DEBUG'
-    
-    # Setup the root logger
-    setupRootLogger(args.logLevel)
+        
+    if not is_valid_log_type(args.logLevel):
+        print(f"Invalid log level provided: {args.logLevel}. Defaulting to WARNING.")
+        args.logLevel = 'WARNING'
+    setup_root_logger(args.logLevel.upper())
     
     logger.info(f"File value: {args.file}")
     
+    file = None
     if args.file:
         logger.info(f"File provided: {args.file}")
-        importCSV(args.file)
-    elif args.debug:
-        # For testing purposes    
+        file = args.file
+    elif args.debug:    
         curDir = os.path.dirname(os.path.realpath(__file__))
         testFileName = os.path.join('valid','TD-Credit_Transactions_Oct2025.csv')
-        testFilePath = os.path.join(curDir, '..', 'testfiles', testFileName)
-        logger.info(f"Testing importCSV with file: {testFilePath}")
-        importCSV(testFilePath)
+        file = os.path.join(curDir, '..', 'testfiles', testFileName)
+        logger.info(f"Debug file: {file}")
+    import_csv(file)
