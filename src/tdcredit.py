@@ -49,9 +49,12 @@ def importCSV(rows):
         debit = float(row[4]) if row[4] else 0.0
         formatedData.append(Transaction(date, row[3], credit - debit))
         
+    logger.debug("Formatted Transactions:")
     i = 0
     for t in formatedData:
-        logger.debug(f"Formatted Transaction for Row {i}: {t}")
+        logger.debug(f"R{i}: {t}")
         i += 1
+        
+    logger.info("CSV import successful")
 
     return formatedData

@@ -2,28 +2,28 @@ from datetime import date
 
 class Transaction:
     date: date | None
-    desc: str | None
+    sum: str | None
     value: float | None
     def __new__(
             cls,
             date,
-            desc,
+            sum,
             value
     ):
         instance = super(Transaction, cls).__new__(cls)
         instance.date = date
-        instance.desc = desc
+        instance.sum = sum
         instance.value = value
         return instance
     
     def __init__(
         self,
         date,
-        desc,
+        sum,
         value):
         self.date = date
-        self.desc = desc
+        self.sum = sum
         self.value = value
 
     def __str__(self):
-        return f"Transaction(Date: {self.date}, Desc: {self.desc}, Value: {self.value})"
+        return f"Transaction (D:{self.date}, S:{self.sum}, V:{self.value})"
