@@ -1,20 +1,9 @@
-from datetime import date
+import datetime
 
 class Transaction:
-    date: date | None
+    date: datetime.date | None
     sum: str | None
     value: float | None
-    def __new__(
-            cls,
-            date,
-            sum,
-            value
-    ):
-        instance = super(Transaction, cls).__new__(cls)
-        instance.date = date
-        instance.sum = sum
-        instance.value = value
-        return instance
     
     def __init__(
         self,
