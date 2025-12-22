@@ -6,8 +6,9 @@ import csv
 import logging
 import datetime
 import argparse
+import pdfplumber
 
-import tdcredit
+import eominsight.csv.tdcredit as tdcredit
 
 logger = logging.getLogger(__name__)
 
@@ -19,21 +20,8 @@ class SupportedInstitutions:
     # RBC_BANKING = "RBC-Banking"
     # EQ_BANK = "EQ-Bank"
     # CTFS_CREDIT = "CTFS-Credit"
-
-def import_csv(filePath):
-
-    p = Path(filePath)
     
-    try:
-        if not p.exists():
-            raise FileNotFoundError(f"The file at {filePath} does not exist.")
-        if not p.is_file():
-            raise IsADirectoryError(f"The path {filePath} is a directory.")
-        if not p.suffix.lower() == '.csv':
-            raise ValueError(f"The file at {filePath} is not a CSV file.")
-        if not os.access(filePath, os.R_OK):
-            raise PermissionError(f"The file at {filePath} is not readable.")
-    
+def import_csv(p):
         with p.open('r', encoding='utf-8') as file:
             
             # Determine the institution type
@@ -56,16 +44,13 @@ def import_csv(filePath):
                 
             isValid = validateCSVFunc(file)
             if not isValid:
-                raise ValueError(f"The CSV file at {filePath} is not valid for institution type '{instituteType}'.")
+                raise ValueError(f"The CSV file at {p} is not valid for institution type '{instituteType}'.")
             
             file = preprocessCSVFunc(file)
             reader = csv.reader(file)
             rows = list(reader)
-            logger.debug(f"Imported {len(rows)} rows from {filePath}")
+            logger.debug(f"Imported {len(rows)} rows from {p}")
             formatedData = importFunc(rows)
-        
-    except Exception as e:
-        logger.exception(str(e))
         
         ''' ---
         # TODO List
@@ -74,6 +59,44 @@ def import_csv(filePath):
         # - Update Google sheet with information
         # - Add support for more institutions
          --- '''
+         
+def import_pdf(p):
+    with p.open('rb') as file:
+        logger.info(f"Importing PDF file at {p}")
+        with pdfplumber.open(file) as pdf:
+            total_pages = len(pdf.pages)
+            logger.info(f"Total pages in PDF: {total_pages}")
+            for i, page in enumerate(pdf.pages):
+                text = page.extract_tables()
+                logger.info(f"Tables from page {i+1}:\n{text}")
+
+def import_file(fp):
+
+    p = Path(fp)
+    
+    try:
+        if not p.exists():
+            raise FileNotFoundError(f"The file at {fp} does not exist.")
+        if not p.is_file():
+            raise IsADirectoryError(f"The path {fp} is a directory.")
+        if not os.access(fp, os.R_OK):
+            raise PermissionError(f"The file at {fp} is not readable.")
+        if os.path.getsize(fp) == 0:
+            raise ValueError(f"The file at {fp} is empty.")
+        
+        fileType = p.suffix.lower()
+        
+        match fileType:
+            case '.csv':
+                import_csv(p)
+            case '.pdf':
+                import_pdf(p)
+            case _:
+                raise ValueError(f"The file type '{fileType}' is not supported.")
+    except Exception as e:
+        logger.exception(str(e))
+        
+    
 
 def run_once(f):
     def wrapper(*args, **kwargs):
@@ -152,8 +175,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     # While debugging, ensure that the log level is properly set to DEBUG
-    if (args.debug):
-        args.logLevel = 'DEBUG'
+    #if (args.debug):
+    #    args.logLevel = 'DEBUG'
         
     if not is_valid_log_type(args.logLevel):
         print(f"Invalid log level provided: {args.logLevel}. Defaulting to WARNING.")
@@ -168,7 +191,8 @@ if __name__ == '__main__':
         file = args.file
     elif args.debug:    
         curDir = os.path.dirname(os.path.realpath(__file__))
-        testFileName = os.path.join('valid','TD-Credit_Transactions_Oct2025.csv')
+        testFileName = os.path.join('pdf', 'valid', 'TD-Credit_Oct_14-2025.pdf')
+        # testFileName = os.path.join('csv','valid','TD-Credit_Transactions_Oct2025.csv')
         file = os.path.join(curDir, '..', 'testfiles', testFileName)
         logger.info(f"Debug file: {file}")
-    import_csv(file)
+    import_file(file)

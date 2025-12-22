@@ -1,4 +1,4 @@
-from transaction import Transaction
+from eominsight.transaction import Transaction
 import datetime
 
 import logging
