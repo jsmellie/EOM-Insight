@@ -13,7 +13,7 @@ import utils.constants as constants
 import parsing.csv.tdcredit as tdcredit
 import utils.logging as logging_utils
 
-logger = logging.getLogger(__name__)
+logger = None
 
 
 """ Full list of all supported institutions.  Used heavily in formatting the CSV"""
@@ -128,22 +128,22 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--logLevel', type=str, help='Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)', required=False, default=constants.DEFAULT_LOG_LEVEL)
     args = parser.parse_args()
     
-    # While debugging, ensure that the log level is properly set to DEBUG
     if (args.debug):
-        args.logLevel = 'DEBUG'
+        constants.DEBUG_ENABLED = True
         
     if not is_valid_log_type(args.logLevel):
         print(f"Invalid log level provided: {args.logLevel}. Defaulting to {constants.DEFAULT_LOG_LEVEL}.")
         args.logLevel = constants.DEFAULT_LOG_LEVEL
     logging_utils.setup_root_logger(args.logLevel.upper())
     
+    logger = logging_utils.create_logger(__name__)    
     logger.info(f"File value: {args.file}")
     
     file = None
     if args.file:
         logger.info(f"File provided: {args.file}")
         file = args.file
-    elif args.debug:    
+    elif constants.DEBUG_ENABLED: 
         curDir = os.path.dirname(os.path.realpath(__file__))
         testFileName = os.path.join('csv','valid','TD-Credit_Transactions_Oct2025.csv')
         file = os.path.join(curDir, '..', 'testfiles', testFileName)

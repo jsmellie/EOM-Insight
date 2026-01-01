@@ -1,13 +1,19 @@
 from transaction import Transaction
 import datetime
+import utils.constants as constants
+import utils.logging as logger_utils
 
-import logging
-logger = logging.getLogger(__name__.partition('.')[2])
+logger = None
+
+@constants.run_once
+def setup_logger():
+    global logger
+    logger = logger_utils.create_logger(__name__.partition('.')[2])
 
 def validate_csv(file):
     ''' TD Credit format is as follows
     # [Month #] [Day #] [Year #] [Desc] [Debit $] [Credit $] [Balance $] '''
-    
+    setup_logger()
     logger.info("Validating CSV data")
     sp = file.tell()
     try:
@@ -46,11 +52,13 @@ def validate_csv(file):
     return True
 
 def preprocess_csv(file):
+    setup_logger()
     logger.info("No pre-processing needed defined")
     # Add any necessary preprocessing logic here
     return file
 
 def import_csv(rows):
+    setup_logger()
     logger.info("Starting CSV import")
     # TD Credit format is as follows
     # [Month #] [Day #] [Year #] [Desc] [Debit $] [Credit $] [Balance $]
