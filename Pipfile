@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 pdfplumber = "*"
+platformdirs = "4.5.0"
 
 [dev-packages]
 

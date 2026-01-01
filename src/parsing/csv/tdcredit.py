@@ -1,8 +1,8 @@
-from eominsight.transaction import Transaction
+from transaction import Transaction
 import datetime
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__.partition('.')[2])
 
 def validate_csv(file):
     ''' TD Credit format is as follows

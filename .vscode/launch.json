@@ -8,7 +8,7 @@
             "name": "Python Debugger: Main File in Debug",
             "type": "debugpy",
             "request": "launch",
-            "module": "eominsight",
+            "program": "src\\main.py",
             "console": "integratedTerminal",
             "args": "-d"
         },
@@ -16,7 +16,7 @@
             "name": "Python Debugger: Main File with Arguments",
             "type": "debugpy",
             "request": "launch",
-            "module": "eominsight",
+            "program": "src\\main.py",
             "console": "integratedTerminal",
             "args": "${command:pickArgs}"
         },
