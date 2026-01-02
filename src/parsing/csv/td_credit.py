@@ -1,4 +1,4 @@
-from transaction import Transaction
+from formatting.transaction import Transaction
 import datetime
 import utils.constants as constants
 import utils.logging as logger_utils

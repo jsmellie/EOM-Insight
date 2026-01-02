@@ -10,7 +10,7 @@ import pdfplumber
 
 import utils.constants as constants
 
-import parsing.csv.tdcredit as tdcredit
+import parsing.csv.td_credit as td_credit
 import utils.logging as logging_utils
 
 logger = None
@@ -40,9 +40,9 @@ def import_csv(p):
             
             match instituteType:
                 case SupportedInstitutions.TD_CREDIT:
-                    validateCSVFunc = tdcredit.validate_csv
-                    preprocessCSVFunc = tdcredit.preprocess_csv
-                    importFunc = tdcredit.import_csv
+                    validateCSVFunc = td_credit.validate_csv
+                    preprocessCSVFunc = td_credit.preprocess_csv
+                    importFunc = td_credit.import_csv
                 case _:
                     raise ValueError(f"The institution type '{instituteType}' is not supported.")
                 
