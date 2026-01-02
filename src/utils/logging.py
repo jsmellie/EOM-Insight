@@ -2,13 +2,14 @@ import datetime
 import logging
 import os
 
+from utils.decorators import run_once
 import utils.constants as constants
 
 _error_handler = None
 _log_dir = None
 
 '''Sets up the root logger for the application.'''
-@constants.run_once
+@run_once
 def setup_root_logger(logLevel=constants.DEFAULT_LOG_LEVEL):
 
     if (constants.DEBUG_ENABLED):

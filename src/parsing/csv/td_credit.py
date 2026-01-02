@@ -2,10 +2,11 @@ from formatting.transaction import Transaction
 import datetime
 import utils.constants as constants
 import utils.logging as logger_utils
+from utils.decorators import run_once
 
 logger = None
 
-@constants.run_once
+@run_once
 def setup_logger():
     global logger
     logger = logger_utils.create_logger(__name__.partition('.')[2])
