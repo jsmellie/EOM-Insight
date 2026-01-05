@@ -35,37 +35,31 @@ def import_csv(p) -> list:
             instituteType = parts[0] if parts else ''
             logger.info(f"Detected institution type: {instituteType}")
             
-            validateCSVFunc = None      
-            preprocessCSVFunc = None
-            importFunc = None
+            validate_func = None      
+            preprocess_func = None
+            import_func = None
             
             match instituteType:
                 case SupportedInstitutions.TD_CREDIT:
-                    validateCSVFunc = td_credit.validate_csv
-                    preprocessCSVFunc = td_credit.preprocess_csv
-                    importFunc = td_credit.import_csv
+                    validate_func = td_credit.validate_csv
+                    preprocess_func = td_credit.preprocess_csv
+                    import_func = td_credit.import_csv
                 case _:
                     raise ValueError(f"The institution type '{instituteType}' is not supported.")
                 
-            isValid = validateCSVFunc(file)
+            isValid = validate_func(file)
             if not isValid:
                 raise ValueError(f"The CSV file at {p} is not valid for institution type '{instituteType}'.")
             
-            file = preprocessCSVFunc(file)
+            file = preprocess_func(file)
             reader = csv.reader(file)
             rows = list(reader)
             logger.debug(f"Imported {len(rows)} rows from {p}")
-            formatedData = importFunc(rows)
-        
-        ''' ---
-        # TODO List
-        # - Categorize transactions based on description regex
-        # - Compare valid transactions against previous imports to prevent duplicates
-        # - Update Google sheet with information
-        # - Add support for more institutions
-         --- '''
+            transactions = import_func(rows)
          
-def import_pdf(p):
+            return transactions
+         
+def import_pdf(p) -> list:
     with p.open('rb') as file:
         logger.info(f"Importing PDF file at {p}")
         with pdfplumber.open(file) as pdf:
@@ -74,10 +68,13 @@ def import_pdf(p):
             for i, page in enumerate(pdf.pages):
                 text = page.extract_tables()
                 logger.info(f"Tables from page {i+1}:\n{text}")
+    return None
 
-def import_file(fp):
+def import_file(fp) -> list:
 
     p = Path(fp)
+    
+    transactions = None
     
     try:
         if not p.exists():
@@ -91,15 +88,18 @@ def import_file(fp):
         
         fileType = p.suffix.lower()
         
+        
         match fileType:
             case '.csv':
-                import_csv(p)
+                transactions = import_csv(p)
             # case '.pdf':
-                # import_pdf(p)
+                # data = import_pdf(p)
             case _:
                 raise ValueError(f"The file type '{fileType}' is not supported.")
     except Exception as e:
-        logger.exception(str(e))  
+        logger.exception(str(e))
+        
+    return transactions
 
 '''Determines if the provided log type is valid by utilizing internal dictionaries of the logging module'''
 def is_valid_log_type(log_type):
@@ -137,8 +137,7 @@ if __name__ == '__main__':
         args.logLevel = constants.DEFAULT_LOG_LEVEL
     logging_utils.setup_root_logger(args.logLevel.upper())
     
-    logger = logging_utils.create_logger(__name__)    
-    logger.info(f"File value: {args.file}")
+    logger = logging_utils.create_logger(__name__) 
     
     category_manager.load_categories()
     
