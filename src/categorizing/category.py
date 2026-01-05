@@ -38,10 +38,22 @@ class Category:
         return filename.endswith(os.path.splitext(constants.CATEGORY_FILE_FORMAT)[1])
 
     def add_entry(self, entry: CategoryEntry):
+        if self.entries is None:
+            self.entries = []
+        if entry is None:
+            return
+        if not isinstance(entry, CategoryEntry):
+            return
         self.entries.append(entry)
         
     def remove_entry(self, entry: CategoryEntry):
         self.entries.remove(entry)
+        
+    def is_valid_entry(self, transaction) -> bool:
+        for entry in self.entries:
+            if entry.compare(transaction):
+                return True
+        return False
         
     def save_to_file(self):
         file_path = os.path.join(constants.CATEGORY_PATH,

@@ -1,4 +1,5 @@
 import os
+from categorizing.category_entry import CategoryEntry
 import utils.constants as constants
 
 from categorizing.category import Category
@@ -31,8 +32,7 @@ def load_categories():
             category = Category.from_str_list(category_name, [])
             _categories.append(category)
             
-        for category in _categories:
-            category.save_to_file()
+        save_categories()
             
 def save_categories():
     global _categories
@@ -40,6 +40,55 @@ def save_categories():
         return
     for category in _categories:
         category.save_to_file()
+        
+def prompt_category_selection(transaction) -> Category | None:
+    global _categories
+    if _categories is None:
+        load_categories()
+    print("-~- Manual transaction categorization required -~-")
+    print(f"Transaction info: {transaction}")
+    print("Please select a category for this transaction:")
+    for i, category in enumerate(_categories):
+        print(f"{i + 1}. {category.name}")
+    print(f"{len(_categories) + 1}. Create a new category")
+    selection = input("Enter the number of the category: ")
+    try:
+        selection_num = int(selection)
+        if 1 <= selection_num <= len(_categories):
+            return _categories[selection_num - 1]
+        elif selection_num == len(_categories) + 1:
+            new_category_name = input("Enter the name of the new category: ")
+            new_category = Category.from_str_list(new_category_name, [])
+            _categories.append(new_category)
+            return new_category
+        else:
+            print("Invalid selection.")
+            return None
+    except ValueError:
+        print("Invalid input. Please enter a number.")
+        return None
+
+def categorize_transaction(transaction) -> bool:
+    if _categories is None:
+        load_categories()
+    if transaction.category is not None:
+        raise ValueError("Transaction is already categorized.")
+    
+    found_category = None
+    for category in _categories:
+        if (category.is_valid_entry(transaction.sum)):
+            found_category = category
+            break
+    if found_category is not None:
+        transaction.category = found_category.name
+        return True
+    
+    found_category = prompt_category_selection(transaction)
+    if found_category is not None:
+        transaction.category = found_category.name
+        found_category.add_entry(CategoryEntry.from_prompt(transaction.sum))
+        return True
+    return False
 
 def test_categories():
     global _categories

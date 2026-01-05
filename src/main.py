@@ -150,7 +150,22 @@ if __name__ == '__main__':
         testFileName = os.path.join('csv','valid','TD-Credit_Transactions_Oct2025.csv')
         file = os.path.join(curDir, '..', 'testfiles', testFileName)
         logger.info(f"Debug file: {file}")
-    formatted_data = import_file(file)
+    transactions = import_file(file)
+    
+    if transactions is None:
+        logger.error("No transactions were imported. Exiting.")
+        exit(1)
+    else:
+        print("-~- Starting automatic transaction categorization -~-")
+        i = 0
+        for transaction in transactions:
+            category_manager.categorize_transaction(transaction)
+            i += 1
+            if (i % 10) == 0:
+                logger.info(f"Categorized {i} transactions so far...")
+            if i >= 5:
+                break
+            
     
     # TODO: Take the formatted data and categorize it
     # then split them into months
