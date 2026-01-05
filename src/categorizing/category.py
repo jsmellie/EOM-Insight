@@ -18,7 +18,7 @@ class Category:
         return cls(name, entries)
     
     @classmethod
-    def from_json(cls, json: dict):
+    def load_from_json(cls, json: dict):
         name = json.get('name')
         entries_data = json.get('entries', [])
         entries = []
@@ -26,6 +26,16 @@ class Category:
             entry = CategoryEntry.from_json(entry_data)
             entries.append(entry)
         return cls(name, entries)
+    
+    @classmethod
+    def load_from_file(cls, file_path: str):
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+            return cls.load_from_json(data)
+    
+    def is_category_file(file_path: str) -> bool:
+        filename = os.path.basename(file_path)
+        return filename.endswith(os.path.splitext(constants.CATEGORY_FILE_FORMAT)[1])
 
     def add_entry(self, entry: CategoryEntry):
         self.entries.append(entry)

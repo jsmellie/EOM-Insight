@@ -7,6 +7,7 @@ import logging
 import datetime
 import argparse
 import pdfplumber
+import categorizing.category_manager as category_manager
 
 import utils.constants as constants
 
@@ -25,7 +26,7 @@ class SupportedInstitutions:
     # EQ_BANK = "EQ-Bank"
     # CTFS_CREDIT = "CTFS-Credit"
     
-def import_csv(p):
+def import_csv(p) -> list:
         with p.open('r', encoding='utf-8') as file:
             
             # Determine the institution type
@@ -139,6 +140,8 @@ if __name__ == '__main__':
     logger = logging_utils.create_logger(__name__)    
     logger.info(f"File value: {args.file}")
     
+    category_manager.load_categories()
+    
     file = None
     if args.file:
         logger.info(f"File provided: {args.file}")
@@ -148,4 +151,10 @@ if __name__ == '__main__':
         testFileName = os.path.join('csv','valid','TD-Credit_Transactions_Oct2025.csv')
         file = os.path.join(curDir, '..', 'testfiles', testFileName)
         logger.info(f"Debug file: {file}")
-    import_file(file)
+    formatted_data = import_file(file)
+    
+    # TODO: Take the formatted data and categorize it
+    # then split them into months
+    # then update/create Google Sheets as necessary
+    
+    category_manager.save_categories()
