@@ -124,7 +124,7 @@ def peek_line(f):
 '''Main entry point for EOM Insight''' 
 if __name__ == '__main__':    
     parser = argparse.ArgumentParser(description='EOM Insight CSV Importer')
-    parser.add_argument('file', type=str, help='Path to the CSV file to import', nargs='?')
+    parser.add_argument('-f', '--file', type=str, help='Path to the CSV file to import', required=False)
     parser.add_argument('-d', '--debug', action='store_true', help='Enable debug mode', required=False)
     parser.add_argument('-l', '--logLevel', type=str, help='Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)', required=False, default=constants.DEFAULT_LOG_LEVEL)
     args = parser.parse_args()
